@@ -38,7 +38,7 @@ public class StudentController {
     }
 
     @GetMapping({"/api/v1/students/{id}", "/api/msm_student/{id}"})
-    public ResponseEntity<ApiResponse<StudentResponseDto>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<StudentResponseDto>> getById(@PathVariable("id") UUID id) {
         log.info("REST endpoint invoked: GET student by id: {}", id);
         StudentResponseDto student = studentService.getById(id);
         return ResponseEntity.ok(ApiResponse.success(student, "Student retrieved successfully"));
@@ -50,11 +50,11 @@ public class StudentController {
      */
     @GetMapping({"/api/msm_student/getDataStudent/paging", "/api/msm_user/getDataStudent/paging", "/api/v1/students"})
     public ResponseEntity<ApiResponse<PagingResult<StudentResponseDto>>> getPaging(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10", required = false) Integer size,
-            @RequestParam(defaultValue = "10", required = false) Integer rows,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
+            @RequestParam(name = "rows", defaultValue = "10", required = false) Integer rows,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir,
             @RequestParam(name = "filters.name.value", required = false) String nameFilter,
             @RequestParam(name = "filters.name.matchMode", defaultValue = "contains") String matchMode) {
 
@@ -67,7 +67,7 @@ public class StudentController {
     }
 
     @PutMapping({"/api/v1/students/{id}", "/api/msm_student/{id}"})
-    public ResponseEntity<ApiResponse<StudentResponseDto>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<StudentResponseDto>> update(@PathVariable("id") UUID id,
                                                                   @Valid @RequestBody StudentUpdateDto dto) {
         log.info("REST endpoint invoked: PUT update student id: {}", id);
         StudentResponseDto updated = studentService.update(id, dto);
@@ -75,7 +75,7 @@ public class StudentController {
     }
 
     @DeleteMapping({"/api/v1/students/{id}", "/api/msm_student/{id}"})
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable("id") UUID id) {
         log.info("REST endpoint invoked: DELETE student id: {}", id);
         studentService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Student deleted successfully"));

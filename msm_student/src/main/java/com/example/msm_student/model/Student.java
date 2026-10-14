@@ -8,7 +8,7 @@ import java.util.UUID;
  * Student JPA Entity using UUID as identifier.
  */
 @Entity
-@Table(name = "students")
+@Table(name = "students", schema = "msm_student")
 public class Student {
 
     @Id

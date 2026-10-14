@@ -43,6 +43,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_PREFIX)) {
             String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+
+            // Strip redundant "Bearer " prefixes if caller sent "Bearer Bearer ..."
+            while (token.startsWith(BEARER_PREFIX)) {
+                token = token.substring(BEARER_PREFIX.length()).trim();
+            }
+
+            // Strip accidental quotes if caller sent "\"eyJ...\""
+            if (token.startsWith("\"") && token.endsWith("\"") && token.length() > 1) {
+                token = token.substring(1, token.length() - 1).trim();
+            }
+
+            if (!StringUtils.hasText(token)) {
+                log.warn("Bearer token is empty in request to {}", request.getRequestURI());
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            if (token.startsWith("{{") && token.endsWith("}}")) {
+                log.warn("Bearer token is an unresolved Postman/client placeholder variable: '{}' in request to {}",
+                        token, request.getRequestURI());
+            }
+
             try {
                 String loginId = jwtTokenService.getLoginId(token);
                 List<String> roles = jwtTokenService.getRoles(token);

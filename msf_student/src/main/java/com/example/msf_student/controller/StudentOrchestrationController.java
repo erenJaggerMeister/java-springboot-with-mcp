@@ -38,10 +38,10 @@ public class StudentOrchestrationController {
      */
     @GetMapping({"/api/msf_student/getDataStudent/paging", "/api/msf_student/paging"})
     public ResponseEntity<ApiResponse<PagingResult<StudentDto>>> getPaging(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int rows,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "rows", defaultValue = "10") int rows,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir,
             @RequestParam(name = "filters.name.value", required = false) String nameFilter,
             @RequestParam(name = "filters.name.matchMode", defaultValue = "contains") String matchMode,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
@@ -66,7 +66,7 @@ public class StudentOrchestrationController {
 
     @GetMapping("/api/msf_student/{id}")
     public ResponseEntity<ApiResponse<StudentDto>> getById(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
         log.info("REST request to get student ID: {}", id);
         StudentDto student = studentService.getById(id, bearerToken);
@@ -75,7 +75,7 @@ public class StudentOrchestrationController {
 
     @PutMapping("/api/msf_student/{id}")
     public ResponseEntity<ApiResponse<StudentDto>> update(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody StudentRequestDto payload,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
         log.info("REST request to update student ID: {}", id);
@@ -85,7 +85,7 @@ public class StudentOrchestrationController {
 
     @DeleteMapping("/api/msf_student/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
         log.info("REST request to delete student ID: {}", id);
         studentService.delete(id, bearerToken);

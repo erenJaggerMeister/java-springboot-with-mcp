@@ -1,6 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE SCHEMA IF NOT EXISTS msm_student;
+
+CREATE TABLE IF NOT EXISTS msm_student.students (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nama VARCHAR(100) NOT NULL,
     umur INT NOT NULL,
@@ -11,7 +13,7 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 -- Seed initial student records with UUID
-INSERT INTO students (id, nama, umur, kelas, jenis_kelas, created_at, updated_at)
+INSERT INTO msm_student.students (id, nama, umur, kelas, jenis_kelas, created_at, updated_at)
 VALUES 
     ('b0000000-0000-0000-0000-000000000001', 'Budi Pratama', 17, '12-IPA-1', 'Reguler', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('b0000000-0000-0000-0000-000000000002', 'Siti Rahma', 16, '11-IPS-2', 'Akselerasi', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

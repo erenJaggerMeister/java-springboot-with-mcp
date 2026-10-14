@@ -6,7 +6,7 @@ spring:
     name: msm_student
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=msm_student}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
@@ -18,13 +18,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_schema: public
+        default_schema: msm_student
 
   flyway:
     enabled: true
     baseline-on-migrate: true
+    baseline-version: 0
     locations: classpath:db/migration
-    schemas: public
+    schemas: msm_student
+    table: flyway_schema_history_student
 
 msm:
   security:

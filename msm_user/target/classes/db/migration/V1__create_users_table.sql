@@ -1,6 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE SCHEMA IF NOT EXISTS msm_user;
+
+CREATE TABLE IF NOT EXISTS msm_user.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     login_id VARCHAR(100),
     password VARCHAR(255) NOT NULL,
@@ -14,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Seed default initial user 'marcellius@example.com' with role 'super_admin'
-INSERT INTO users (id, login_id, password, name, role, active, created_by, created_at, updated_at)
+INSERT INTO msm_user.users (id, login_id, password, name, role, active, created_by, created_at, updated_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000001',
     'marcellius@example.com',

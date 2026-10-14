@@ -42,11 +42,17 @@ public class RsaKeyProvider {
         return publicKey;
     }
 
+    private static final String DEV_KEY_FILE = System.getProperty("java.io.tmpdir") + File.separator + "msm-rsa-dev-keypair.properties";
+
     @PostConstruct
     public void init() {
         try {
             String privContent = resolveKeyContent(properties.getPrivateKey(), properties.getPrivateKeyPath());
             String pubContent = resolveKeyContent(properties.getPublicKey(), properties.getPublicKeyPath());
+
+            if (!StringUtils.hasText(pubContent) && StringUtils.hasText(properties.getPublicKeyUrl())) {
+                pubContent = fetchPublicKeyFromUrl(properties.getPublicKeyUrl());
+            }
 
             boolean hasPriv = StringUtils.hasText(privContent);
             boolean hasPub = StringUtils.hasText(pubContent);
@@ -60,18 +66,94 @@ public class RsaKeyProvider {
                 log.info("Loading configured RSA-2048 public key for verification...");
                 this.publicKey = parsePublicKey(pubContent);
             } else {
-                log.warn("No RSA-2048 keys configured via environment or path. Generating an ephemeral in-memory RSA-2048 key pair for development...");
-                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-                generator.initialize(2048);
-                KeyPair keyPair = generator.generateKeyPair();
-                this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
-                this.publicKey = (RSAPublicKey) keyPair.getPublic();
-                log.info("Ephemeral RSA-2048 key pair generated successfully.");
+                initDevKeyPair();
             }
         } catch (Exception e) {
             log.error("Failed to initialize RSA keys: {}", e.getMessage(), e);
             throw new IllegalStateException("Failed to initialize RSA keys", e);
         }
+    }
+
+    private void initDevKeyPair() {
+        File devFile = new File(DEV_KEY_FILE);
+        if (devFile.exists()) {
+            try {
+                java.util.Properties props = new java.util.Properties();
+                try (java.io.InputStream in = Files.newInputStream(devFile.toPath())) {
+                    props.load(in);
+                }
+                String priv = props.getProperty("private.key");
+                String pub = props.getProperty("public.key");
+                if (StringUtils.hasText(priv) && StringUtils.hasText(pub)) {
+                    log.info("Loaded shared development RSA-2048 key pair from: {}", DEV_KEY_FILE);
+                    this.privateKey = parsePrivateKey(priv);
+                    this.publicKey = parsePublicKey(pub);
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Failed to load shared dev key file: {}. Regenerating...", e.getMessage());
+            }
+        }
+
+        log.warn("No RSA-2048 keys configured via environment or path. Generating an RSA-2048 key pair for development...");
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            KeyPair keyPair = generator.generateKeyPair();
+            this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
+            this.publicKey = (RSAPublicKey) keyPair.getPublic();
+
+            java.util.Properties props = new java.util.Properties();
+            props.setProperty("private.key", getPrivateKeyPem());
+            props.setProperty("public.key", getPublicKeyPem());
+            try (java.io.OutputStream out = Files.newOutputStream(devFile.toPath())) {
+                props.store(out, "Shared RSA Dev Key Pair for MSM Ecosystem");
+            }
+            log.info("Generated and saved shared RSA-2048 dev key pair to: {}", DEV_KEY_FILE);
+        } catch (Exception e) {
+            log.warn("Could not persist dev key pair to file: {}. Falling back to in-memory key pair.", e.getMessage());
+        }
+    }
+
+    public String fetchPublicKeyFromUrl(String url) {
+        if (!StringUtils.hasText(url)) {
+            return null;
+        }
+        try {
+            log.info("Attempting to fetch RSA public key from auth server URL: {}", url);
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .connectTimeout(java.time.Duration.ofSeconds(2))
+                    .build();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(url))
+                    .timeout(java.time.Duration.ofSeconds(3))
+                    .GET()
+                    .build();
+            java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200 && StringUtils.hasText(resp.body())) {
+                log.info("Successfully fetched RSA public key from {}", url);
+                return resp.body().trim();
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch RSA public key from URL {}: {}", url, e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean reloadPublicKeyFromUrl() {
+        if (StringUtils.hasText(properties.getPublicKeyUrl())) {
+            String fetched = fetchPublicKeyFromUrl(properties.getPublicKeyUrl());
+            if (StringUtils.hasText(fetched)) {
+                try {
+                    this.publicKey = parsePublicKey(fetched);
+                    log.info("Successfully reloaded RSA public key from {}", properties.getPublicKeyUrl());
+                    return true;
+                } catch (Exception e) {
+                    log.error("Failed to parse reloaded RSA public key: {}", e.getMessage());
+                }
+            }
+        }
+        return false;
     }
 
     private String resolveKeyContent(String rawValue, String filePath) {
@@ -124,5 +206,15 @@ public class RsaKeyProvider {
         return "-----BEGIN PUBLIC KEY-----\n" +
                 base64.replaceAll("(.{64})", "$1\n").trim() +
                 "\n-----END PUBLIC KEY-----";
+    }
+
+    public String getPrivateKeyPem() {
+        if (privateKey == null) {
+            return null;
+        }
+        String base64 = Base64.getEncoder().encodeToString(privateKey.getEncoded());
+        return "-----BEGIN PRIVATE KEY-----\n" +
+                base64.replaceAll("(.{64})", "$1\n").trim() +
+                "\n-----END PRIVATE KEY-----";
     }
 }

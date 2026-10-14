@@ -47,10 +47,10 @@ public class UserOrchestrationController {
      */
     @GetMapping("/api/msf_user/getDataUser/paging")
     public ResponseEntity<ApiResponse<PagingResult<UserDto>>> getPaging(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int rows,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "rows", defaultValue = "10") int rows,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
         log.info("REST request to /api/msf_user/getDataUser/paging: page={}, rows={}", page, rows);
         PagingResult<UserDto> result = userService.getPaging(page, rows, sortBy, sortDir, bearerToken);

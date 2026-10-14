@@ -32,6 +32,11 @@ public class RsaKeyProperties {
     private String publicKeyPath;
 
     /**
+     * HTTP URL to dynamically retrieve RSA Public Key from auth server (e.g. http://localhost:8080/api/v1/auth/public-key).
+     */
+    private String publicKeyUrl;
+
+    /**
      * Unique Key ID for JOSE header.
      */
     private String keyId = "msm-rsa-2048-key";
@@ -79,6 +84,14 @@ public class RsaKeyProperties {
 
     public void setPublicKeyPath(String publicKeyPath) {
         this.publicKeyPath = publicKeyPath;
+    }
+
+    public String getPublicKeyUrl() {
+        return publicKeyUrl;
+    }
+
+    public void setPublicKeyUrl(String publicKeyUrl) {
+        this.publicKeyUrl = publicKeyUrl;
     }
 
     public String getKeyId() {

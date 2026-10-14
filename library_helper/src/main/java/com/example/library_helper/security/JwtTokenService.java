@@ -97,6 +97,18 @@ public class JwtTokenService {
             JWSVerifier verifier = new RSASSAVerifier(rsaKeyProvider.getPublicKey());
 
             if (!signedJWT.verify(verifier)) {
+                if (rsaKeyProvider.reloadPublicKeyFromUrl()) {
+                    verifier = new RSASSAVerifier(rsaKeyProvider.getPublicKey());
+                    if (signedJWT.verify(verifier)) {
+                        log.info("JWT token signature verified successfully after reloading public key from auth server");
+                        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+                        if (expirationTime != null && new Date().after(expirationTime)) {
+                            log.warn("JWT token has expired at {}", expirationTime);
+                            throw new UnauthorizedException("Token has expired");
+                        }
+                        return signedJWT;
+                    }
+                }
                 log.warn("JWT token signature verification failed");
                 throw new UnauthorizedException("Invalid token signature");
             }
