@@ -1,0 +1,14 @@
+com\example\msf_student\client\MsmStudentClient$3.class
+com\example\msf_student\dto\StudentDto$Builder.class
+com\example\msf_student\dto\StudentRequestDto.class
+com\example\msf_student\service\impl\StudentOrchestrationServiceImpl.class
+com\example\msf_student\config\SecurityConfig.class
+com\example\msf_student\service\interfaces\StudentOrchestrationService.class
+com\example\msf_student\client\MsmStudentClient$1.class
+com\example\msf_student\client\MsmStudentClient$2.class
+com\example\msf_student\controller\StudentOrchestrationController.class
+com\example\msf_student\config\AppConfig.class
+com\example\msf_student\dto\StudentDto.class
+com\example\msf_student\MsfStudentApplication.class
+com\example\msf_student\client\MsmStudentClient.class
+com\example\msf_student\client\MsmStudentClient$4.class

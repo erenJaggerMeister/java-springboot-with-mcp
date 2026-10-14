@@ -1,0 +1,45 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: msm_student
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: public
+
+msm:
+  security:
+    rsa:
+      key-id: msm-rsa-2048-key
+      issuer: msf-auth-service
+      # Public key loaded via Environment Variables or external file paths (NOT hardcoded)
+      public-key: ${RSA_PUBLIC_KEY:}
+      public-key-path: ${RSA_PUBLIC_KEY_PATH:}
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.security: INFO
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-NONE}] - %msg%n"

@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: msf_auth
+
+msm:
+  user-service:
+    url: ${MSM_USER_URL:http://localhost:8081}
+  security:
+    rsa:
+      key-id: msm-rsa-2048-key
+      issuer: msf-auth-service
+      expiration-minutes: 60
+      # Keys loaded via Environment Variables or external file paths (NOT hardcoded)
+      private-key: ${RSA_PRIVATE_KEY:}
+      private-key-path: ${RSA_PRIVATE_KEY_PATH:}
+      public-key: ${RSA_PUBLIC_KEY:}
+      public-key-path: ${RSA_PUBLIC_KEY_PATH:}
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-NONE}] - %msg%n"
