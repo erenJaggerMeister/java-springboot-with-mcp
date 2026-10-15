@@ -1264,11 +1264,6 @@ function Login({ onLoginSuccess }) {
       setLoading(false);
     }
   };
-  const handleUseSeedAccount = () => {
-    setLoginId("marcellius@example.com");
-    setPassword("password123");
-    setErrorMessage("");
-  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "login-page", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "login-card", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "login-header", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "login-badge-icon", children: /* @__PURE__ */ jsxRuntimeExports.jsx(KeyRound, { size: 28 }) }),
@@ -1328,23 +1323,6 @@ function Login({ onLoginSuccess }) {
             /* @__PURE__ */ jsxRuntimeExports.jsx(LogIn, { size: 18 }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Masuk ke Sistem" })
           ] })
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "login-footer", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-muted text-xs", children: "Kredensial seed migrasi database:" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          type: "button",
-          className: "seed-hint-btn",
-          onClick: handleUseSeedAccount,
-          title: "Klik untuk mengisi data login otomatis",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("code", { children: "marcellius@example.com" }),
-            " / ",
-            /* @__PURE__ */ jsxRuntimeExports.jsx("code", { children: "password123" })
-          ]
         }
       )
     ] })

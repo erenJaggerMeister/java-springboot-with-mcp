@@ -28,11 +28,6 @@ export default function Login({ onLoginSuccess }) {
     }
   };
 
-  const handleUseSeedAccount = () => {
-    setLoginId('marcellius@example.com');
-    setPassword('password123');
-    setErrorMessage('');
-  };
 
   return (
     <div className="login-page">
@@ -103,19 +98,6 @@ export default function Login({ onLoginSuccess }) {
           </button>
         </form>
 
-        <div className="login-footer">
-          <p className="text-muted text-xs">
-            Kredensial seed migrasi database:
-          </p>
-          <button
-            type="button"
-            className="seed-hint-btn"
-            onClick={handleUseSeedAccount}
-            title="Klik untuk mengisi data login otomatis"
-          >
-            <code>marcellius@example.com</code> / <code>password123</code>
-          </button>
-        </div>
       </div>
     </div>
   );

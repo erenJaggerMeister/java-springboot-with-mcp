@@ -124,51 +124,26 @@ body {
   width: 100%;
 }
 
-.login-footer {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border-color);
-  text-align: center;
-}
-
-.seed-hint-btn {
-  margin-top: 0.35rem;
-  background: #f1f5f9;
-  border: 1px dashed #cbd5e1;
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
-  cursor: pointer;
-  display: inline-block;
-  transition: all 0.15s;
-}
-
-.seed-hint-btn:hover {
-  background: #e2e8f0;
-  border-color: #94a3b8;
-}
-
-.seed-hint-btn code {
-  color: #2563eb;
-  font-weight: 600;
-  font-size: 0.8rem;
-}
-
 /* ===============================
    APP LAYOUT & SIDEBAR
 ================================= */
 .app-layout {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   min-height: 100vh;
+  width: 100%;
 }
 
 .main-sidebar {
   width: 260px;
+  min-width: 260px;
   background-color: var(--sidebar-bg);
   color: #ffffff;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   border-right: 1px solid #1e293b;
+  min-height: 100vh;
 }
 
 .sidebar-brand {
