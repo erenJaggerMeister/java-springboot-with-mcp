@@ -1,12 +1,12 @@
 com\example\msf_user\dto\CreateUserRequestDto.class
+com\example\msf_user\client\MsmUserClient$2.class
+com\example\msf_user\dto\UserDto$Builder.class
 com\example\msf_user\MsfUserApplication.class
 com\example\msf_user\service\impl\UserOrchestrationServiceImpl.class
 com\example\msf_user\config\SecurityConfig.class
 com\example\msf_user\client\MsmUserClient.class
+com\example\msf_user\config\AppConfig.class
 com\example\msf_user\service\interfaces\UserOrchestrationService.class
 com\example\msf_user\controller\UserOrchestrationController.class
-com\example\msf_user\client\MsmUserClient$2.class
-com\example\msf_user\dto\UserDto$Builder.class
-com\example\msf_user\config\AppConfig.class
 com\example\msf_user\dto\UserDto.class
 com\example\msf_user\client\MsmUserClient$1.class

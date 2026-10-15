@@ -1,0 +1,14 @@
+{
+  "name": "java-springboot-with-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecosystem Microservices (MSF, MSM) & Microfrontends (MFE)",
+  "scripts": {
+    "install:all": "npm --prefix mfe_student install && npm --prefix mfe_user install && npm --prefix mfe_main install",
+    "build:all": "npm --prefix mfe_student run build && npm --prefix mfe_user run build && npm --prefix mfe_main run build",
+    "start:student": "npm --prefix mfe_student run preview",
+    "start:user": "npm --prefix mfe_user run preview",
+    "start:main": "npm --prefix mfe_main run dev",
+    "preview:main": "npm --prefix mfe_main run preview"
+  }
+}
