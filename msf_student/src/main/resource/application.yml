@@ -4,6 +4,15 @@ server:
 spring:
   application:
     name: msf_student
+  ai:
+    mcp:
+      server:
+        name: msf-student-mcp-server
+        version: 1.0.0
+        type: sync
+        protocol: stateless
+        streamable-http:
+          mcp-endpoint: /api/msf_student/mcp
 
 msm:
   student-service:
