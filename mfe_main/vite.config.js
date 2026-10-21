@@ -10,6 +10,8 @@ export default defineConfig({
       remotes: {
         mfe_student: 'http://localhost:3001/assets/remoteEntry.js',
         mfe_user: 'http://localhost:3002/assets/remoteEntry.js',
+        mfe_chat: 'http://localhost:3003/assets/remoteEntry.js',
+        mfe_ai_config: 'http://localhost:3004/assets/remoteEntry.js',
       },
       shared: ['react', 'react-dom']
     })

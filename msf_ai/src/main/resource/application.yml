@@ -1,0 +1,31 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: msf_ai
+
+msm:
+  ai-service:
+    url: ${MSM_AI_URL:http://localhost:8085}
+  security:
+    rsa:
+      key-id: msm-rsa-2048-key
+      issuer: msf-auth-service
+      public-key: ${RSA_PUBLIC_KEY:}
+      public-key-path: ${RSA_PUBLIC_KEY_PATH:}
+      public-key-url: ${RSA_PUBLIC_KEY_URL:http://localhost:8080/api/v1/auth/public-key}
+
+ai:
+  gemini:
+    default-api-key: ${GEMINI_API_KEY:}
+    default-model: ${GEMINI_MODEL:gemini-1.5-flash}
+    endpoint: https://generativelanguage.googleapis.com/v1beta/models
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-NONE}] - %msg%n"

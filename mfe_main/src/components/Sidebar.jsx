@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Users, LayoutDashboard, Layers } from 'lucide-react';
+import { GraduationCap, Users, Bot, Sliders, Layers } from 'lucide-react';
 
 export default function Sidebar({ activeMenu, onSelectMenu }) {
   const menuItems = [
@@ -18,6 +18,22 @@ export default function Sidebar({ activeMenu, onSelectMenu }) {
       icon: Users,
       port: 3002,
       badge: 'Port 3002'
+    },
+    {
+      id: 'chat',
+      label: 'mfe_chat',
+      title: 'Chat AI & MCP',
+      icon: Bot,
+      port: 3003,
+      badge: 'Port 3003'
+    },
+    {
+      id: 'ai-config',
+      label: 'mfe_ai_config',
+      title: 'Konfigurasi AI',
+      icon: Sliders,
+      port: 3004,
+      badge: 'Port 3004'
     }
   ];
 
