@@ -9,6 +9,8 @@ import { Loader2 } from 'lucide-react';
 // Federated Remote Microfrontends
 const RemoteStudentApp = React.lazy(() => import('mfe_student/StudentApp'));
 const RemoteUserApp = React.lazy(() => import('mfe_user/UserApp'));
+const RemoteChatApp = React.lazy(() => import('mfe_chat/ChatApp'));
+const RemoteAiConfigApp = React.lazy(() => import('mfe_ai_config/AiConfigApp'));
 
 function ModuleLoadingFallback({ moduleName }) {
   return (
@@ -28,7 +30,7 @@ export default function App() {
   const handleLoginSuccess = (newToken, newUser) => {
     setToken(newToken);
     setUser(newUser);
-    setActiveMenu('student'); // Aturan: setelah login berhasil, langsung diarahkan ke mfe_student!
+    setActiveMenu('student');
   };
 
   const handleLogout = () => {
@@ -38,12 +40,12 @@ export default function App() {
     setActiveMenu('student');
   };
 
-  // 1 & 2: Jika belum login, tampilkan form login. User tidak bisa masuk bila tidak valid.
+  // 1 & 2: Jika belum login, tampilkan form login
   if (!token) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // 3 - 7: Layout utama dengan Sidebar di kiri, Header di atas dengan judul dan info login di kanan atas
+  // Layout utama
   return (
     <div className="app-layout">
       {/* Sidebar sebelah kiri */}
@@ -73,6 +75,22 @@ export default function App() {
             <RemoteErrorBoundary key="boundary-user" moduleName="mfe_user" port={3002}>
               <Suspense fallback={<ModuleLoadingFallback moduleName="mfe_user" />}>
                 <RemoteUserApp token={token} user={user} />
+              </Suspense>
+            </RemoteErrorBoundary>
+          )}
+
+          {activeMenu === 'chat' && (
+            <RemoteErrorBoundary key="boundary-chat" moduleName="mfe_chat" port={3003}>
+              <Suspense fallback={<ModuleLoadingFallback moduleName="mfe_chat" />}>
+                <RemoteChatApp token={token} user={user} />
+              </Suspense>
+            </RemoteErrorBoundary>
+          )}
+
+          {activeMenu === 'ai-config' && (
+            <RemoteErrorBoundary key="boundary-ai-config" moduleName="mfe_ai_config" port={3004}>
+              <Suspense fallback={<ModuleLoadingFallback moduleName="mfe_ai_config" />}>
+                <RemoteAiConfigApp token={token} user={user} />
               </Suspense>
             </RemoteErrorBoundary>
           )}

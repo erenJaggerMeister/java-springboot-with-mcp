@@ -1,0 +1,16 @@
+com\example\msm_ai\model\McpConfig.class
+com\example\msm_ai\controller\AiConfigController.class
+com\example\msm_ai\dto\AiConfigDto.class
+com\example\msm_ai\service\interfaces\McpConfigService.class
+com\example\msm_ai\repository\AiConfigRepository.class
+com\example\msm_ai\controller\McpConfigController.class
+com\example\msm_ai\MsmAiApplication.class
+com\example\msm_ai\dto\McpConfigCreateDto.class
+com\example\msm_ai\dto\McpConfigDto.class
+com\example\msm_ai\service\interfaces\AiConfigService.class
+com\example\msm_ai\config\SecurityConfig.class
+com\example\msm_ai\model\AiConfig.class
+com\example\msm_ai\repository\McpConfigRepository.class
+com\example\msm_ai\service\impl\AiConfigServiceImpl.class
+com\example\msm_ai\config\AppConfig.class
+com\example\msm_ai\service\impl\McpConfigServiceImpl.class
