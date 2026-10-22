@@ -7,6 +7,8 @@ import com.example.msf_ai.dto.ChatResponseDto;
 import com.example.msf_ai.dto.GeminiTestResponseDto;
 import com.example.msf_ai.dto.McpConfigDto;
 import com.example.msf_ai.service.interfaces.GeminiAiService;
+import com.example.msf_ai.service.interfaces.LlmProviderService;
+import com.example.msf_ai.dto.LlmTestResponseDto;
 import com.example.msf_ai.service.interfaces.McpClientService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +25,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.util.*;
 
 @Service
-public class GeminiAiServiceImpl implements GeminiAiService {
+public class GeminiAiServiceImpl implements GeminiAiService, LlmProviderService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiAiServiceImpl.class);
 
@@ -48,15 +50,45 @@ public class GeminiAiServiceImpl implements GeminiAiService {
 
     @Override
     public ChatResponseDto chat(ChatRequestDto request, String bearerToken) {
-        log.info("[GEMINI-AI] Processing chat request: '{}'", request.getMessage());
-
-        // 1. Resolve Gemini API Key & Model from msm_ai or defaults
         String apiKey = msmAiClient.getAiConfigValue("gemini_api_key", defaultApiKey, bearerToken);
         String model = msmAiClient.getAiConfigValue("gemini_model", defaultModel, bearerToken);
-
-        // 2. Fetch Active (Plugged-In) MCP Servers
         List<McpConfigDto> activeMcps = msmAiClient.getActiveMcpConfigs(bearerToken);
+        return chat(request, apiKey, model, activeMcps, bearerToken);
+    }
+
+    @Override
+    public boolean supports(String provider) {
+        return "gemini".equalsIgnoreCase(provider) || "google".equalsIgnoreCase(provider);
+    }
+
+    @Override
+    public LlmTestResponseDto testLlmConnection(String apiKey, String model) {
+        GeminiTestResponseDto res = testConnection(apiKey, model);
+        return new LlmTestResponseDto(
+                res.isSuccess(),
+                res.getMessage(),
+                "gemini",
+                res.getModelTested(),
+                res.getAvailableModels()
+        );
+    }
+
+    @Override
+    public ChatResponseDto chat(ChatRequestDto request, String apiKeyParam, String modelParam, List<McpConfigDto> activeMcpsParam, String bearerToken) {
+        log.info("[GEMINI-AI] Processing chat request: '{}'", request.getMessage());
+
+        String apiKey = (apiKeyParam != null && !apiKeyParam.isBlank())
+                ? apiKeyParam
+                : msmAiClient.getAiConfigValue("gemini_api_key", defaultApiKey, bearerToken);
+        String model = (modelParam != null && !modelParam.isBlank())
+                ? modelParam
+                : msmAiClient.getAiConfigValue("gemini_model", defaultModel, bearerToken);
+
+        List<McpConfigDto> activeMcps = (activeMcpsParam != null)
+                ? activeMcpsParam
+                : msmAiClient.getActiveMcpConfigs(bearerToken);
         log.info("[GEMINI-AI] Active MCP count: {}", activeMcps.size());
+
 
         // 3. Discover available tools from each active MCP server
         Map<String, String> toolToMcpUrlMap = new HashMap<>();
@@ -164,19 +196,28 @@ public class GeminiAiServiceImpl implements GeminiAiService {
                 log.info("[GEMINI-AI] Tool result received: {}", toolResultNode.toString());
 
                 // 7. Append Model Function Call Turn & Function Response Turn
-                ObjectNode modelTurn = contentsNode.addObject();
-                modelTurn.put("role", "model");
-                modelTurn.putArray("parts").add(objectMapper.createObjectNode().set("functionCall", functionCallPart));
+                // Retain the exact model turn from Gemini to preserve thoughtSignature (mandatory for Gemini 3+)
+                if (content != null && content.isObject()) {
+                    contentsNode.add(content);
+                } else {
+                    ObjectNode modelTurn = contentsNode.addObject();
+                    modelTurn.put("role", "model");
+                    modelTurn.putArray("parts").add(objectMapper.createObjectNode().set("functionCall", functionCallPart));
+                }
 
                 ObjectNode functionTurn = contentsNode.addObject();
-                functionTurn.put("role", "tool");
+                functionTurn.put("role", "user");
                 ArrayNode functionParts = functionTurn.putArray("parts");
                 ObjectNode funcResponseWrapper = functionParts.addObject().putObject("functionResponse");
                 funcResponseWrapper.put("name", toolName);
                 
                 // Format response payload for Gemini
                 ObjectNode responsePayload = funcResponseWrapper.putObject("response");
-                responsePayload.set("result", toolResultNode);
+                if (toolResultNode != null && toolResultNode.has("result")) {
+                    responsePayload.set("result", toolResultNode.get("result"));
+                } else {
+                    responsePayload.set("result", toolResultNode);
+                }
 
                 // 8. Second call to Gemini to synthesize natural language answer
                 String secondResponse = restClient.post()

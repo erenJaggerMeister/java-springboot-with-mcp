@@ -319,8 +319,8 @@ body {
 
 .main-header {
   height: 68px;
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--border-color);
+  background-color: #0f172a;
+  border-bottom: 1px solid #1e293b;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -333,7 +333,7 @@ body {
 .header-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff !important;
 }
 
 .header-right {
@@ -348,8 +348,8 @@ body {
   gap: 0.75rem;
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #1e293b;
+  border: 1px solid #334155;
 }
 
 .user-avatar {
@@ -372,14 +372,14 @@ body {
 .user-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #f8fafc;
 }
 
 .user-role {
   display: inline-flex;
   align-items: center;
   font-size: 0.72rem;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: capitalize;
 }
 
