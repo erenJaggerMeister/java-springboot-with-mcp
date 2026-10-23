@@ -82,6 +82,13 @@ public class LlmOrchestrationService {
                         "meta/llama-3.1-70b-instruct",
                         List.of("meta/llama-3.1-70b-instruct", "meta/llama-3.1-8b-instruct", "mistralai/mixtral-8x22b-instruct"),
                         "Microservice terakselerasi GPU NVIDIA yang meng-host open-source model mutakhir."
+                ),
+                new LlmProviderDto(
+                        "openrouter",
+                        "OpenRouter",
+                        "openai/gpt-4o-mini",
+                        List.of("openai/gpt-4o-mini", "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "deepseek/deepseek-chat", "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct"),
+                        "Gateway AI terpadu untuk mengakses ratusan model LLM terkemuka (Claude, GPT, DeepSeek, Llama, Gemini) via 1 API Key."
                 )
         );
     }
@@ -100,6 +107,9 @@ public class LlmOrchestrationService {
         }
         if (key.startsWith("nvapi-")) {
             return "nvidia";
+        }
+        if (key.startsWith("sk-or-")) {
+            return "openrouter";
         }
         if (key.startsWith("sk-proj-")) {
             return "openai";
@@ -120,6 +130,20 @@ public class LlmOrchestrationService {
     }
 
     private String probeCandidates(String apiKey) {
+        // Probe OpenRouter
+        try {
+            String res = fastProbeClient.get()
+                    .uri("https://openrouter.ai/api/v1/models")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                    .header("HTTP-Referer", "http://localhost:8080")
+                    .header("X-Title", "MSF AI Assistant")
+                    .retrieve()
+                    .body(String.class);
+            if (res != null && res.contains("data")) {
+                return "openrouter";
+            }
+        } catch (Exception ignored) {}
+
         // Probe OpenAI
         try {
             String res = fastProbeClient.get()
@@ -198,6 +222,7 @@ public class LlmOrchestrationService {
     public String getProviderDisplayName(String provider) {
         if (provider == null) return "Google Gemini";
         return switch (provider.trim().toLowerCase()) {
+            case "openrouter" -> "OpenRouter";
             case "openai" -> "OpenAI (ChatGPT)";
             case "claude", "anthropic" -> "Anthropic Claude";
             case "deepseek" -> "DeepSeek";
@@ -218,7 +243,7 @@ public class LlmOrchestrationService {
             }
         }
 
-        if ("deepseek".equals(prov) || "mistral".equals(prov) || "nvidia".equals(prov) || "openai".equals(prov)) {
+        if ("deepseek".equals(prov) || "mistral".equals(prov) || "nvidia".equals(prov) || "openai".equals(prov) || "openrouter".equals(prov)) {
             return openAiCompatibleAiService.fetchAvailableModels(resolvedKey, prov);
         }
 
@@ -241,10 +266,15 @@ public class LlmOrchestrationService {
         }
 
         String prov = (provider != null && !provider.isBlank()) ? provider.trim().toLowerCase() : detectProviderFromKey(resolvedKey);
+        // Auto-correct if provider defaulted to gemini but key belongs to another provider
+        String detected = detectProviderFromKey(resolvedKey);
+        if ("gemini".equalsIgnoreCase(prov) && !"gemini".equalsIgnoreCase(detected)) {
+            prov = detected;
+        }
 
         log.info("[LLM-ORCHESTRATOR] Testing connection for provider '{}', model '{}'", prov, model);
 
-        if ("deepseek".equals(prov) || "mistral".equals(prov) || "nvidia".equals(prov) || "openai".equals(prov)) {
+        if ("deepseek".equals(prov) || "mistral".equals(prov) || "nvidia".equals(prov) || "openai".equals(prov) || "openrouter".equals(prov)) {
             return openAiCompatibleAiService.testConnection(resolvedKey, model, prov);
         }
 
@@ -264,6 +294,12 @@ public class LlmOrchestrationService {
             prov = detectProviderFromKey(apiKey);
         }
         prov = prov.trim().toLowerCase();
+
+        // Auto-correct provider if sent as gemini default but key clearly belongs to another provider
+        String detected = detectProviderFromKey(apiKey);
+        if ("gemini".equalsIgnoreCase(prov) && !"gemini".equalsIgnoreCase(detected)) {
+            prov = detected;
+        }
 
         String model = dto.getModel() != null ? dto.getModel().trim() : "";
 
@@ -319,7 +355,7 @@ public class LlmOrchestrationService {
         log.info("[LLM-ORCHESTRATOR] Dispatching chat to provider '{}' (model: '{}', activeMcps: {})",
                 provider, model, activeMcps.size());
 
-        if ("deepseek".equals(provider) || "mistral".equals(provider) || "nvidia".equals(provider) || "openai".equals(provider)) {
+        if ("deepseek".equals(provider) || "mistral".equals(provider) || "nvidia".equals(provider) || "openai".equals(provider) || "openrouter".equals(provider)) {
             return openAiCompatibleAiService.chat(request, apiKey, model, activeMcps, bearerToken, provider);
         }
 

@@ -34,14 +34,16 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
             "openai", "https://api.openai.com/v1",
             "deepseek", "https://api.deepseek.com",
             "mistral", "https://api.mistral.ai/v1",
-            "nvidia", "https://integrate.api.nvidia.com/v1"
+            "nvidia", "https://integrate.api.nvidia.com/v1",
+            "openrouter", "https://openrouter.ai/api/v1"
     );
 
     private static final Map<String, List<String>> DEFAULT_MODELS = Map.of(
             "openai", List.of("gpt-4o", "gpt-4o-mini", "o1", "o1-mini", "gpt-4-turbo", "gpt-3.5-turbo"),
             "deepseek", List.of("deepseek-chat", "deepseek-reasoner"),
             "mistral", List.of("mistral-large-latest", "mistral-medium-latest", "mistral-small-latest", "codestral-latest", "open-mistral-nemo"),
-            "nvidia", List.of("meta/llama-3.1-70b-instruct", "meta/llama-3.1-8b-instruct", "mistralai/mixtral-8x22b-instruct", "nvidia/nemotron-4-340b-instruct")
+            "nvidia", List.of("meta/llama-3.1-70b-instruct", "meta/llama-3.1-8b-instruct", "mistralai/mixtral-8x22b-instruct", "nvidia/nemotron-4-340b-instruct"),
+            "openrouter", List.of("openai/gpt-4o-mini", "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "google/gemini-2.0-flash-exp:free", "google/gemini-flash-1.5", "meta-llama/llama-3.3-70b-instruct")
     );
 
     public OpenAiCompatibleAiServiceImpl(McpClientService mcpClientService) {
@@ -67,11 +69,14 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
         if (baseUrl == null) return defaultList;
 
         try {
-            String rawResponse = restClient.get()
+            var getReq = restClient.get()
                     .uri(baseUrl + "/models")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim())
-                    .retrieve()
-                    .body(String.class);
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim());
+            if ("openrouter".equals(lowerProvider)) {
+                getReq.header("HTTP-Referer", "http://localhost:8080")
+                      .header("X-Title", "MSF AI Assistant");
+            }
+            String rawResponse = getReq.retrieve().body(String.class);
 
             if (rawResponse != null) {
                 JsonNode root = objectMapper.readTree(rawResponse);
@@ -85,6 +90,11 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
                         }
                     }
                     if (!dynamicModels.isEmpty()) {
+                        if ("openrouter".equals(lowerProvider)) {
+                            Set<String> ordered = new LinkedHashSet<>(defaultList);
+                            ordered.addAll(dynamicModels);
+                            return new ArrayList<>(ordered);
+                        }
                         return dynamicModels;
                     }
                 }
@@ -131,13 +141,16 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
             userMsg.put("role", "user");
             userMsg.put("content", "Halo, test koneksi");
 
-            String rawResponse = restClient.post()
+            var postReq = restClient.post()
                     .uri(baseUrl + "/chat/completions")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(payload.toString())
-                    .retrieve()
-                    .body(String.class);
+                    .body(payload.toString());
+            if ("openrouter".equals(lowerProvider)) {
+                postReq.header("HTTP-Referer", "http://localhost:8080")
+                       .header("X-Title", "MSF AI Assistant");
+            }
+            String rawResponse = postReq.retrieve().body(String.class);
 
             if (rawResponse != null && (rawResponse.contains("choices") || rawResponse.contains("created"))) {
                 return new LlmTestResponseDto(
@@ -247,13 +260,16 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
 
         try {
             // First call to LLM
-            String rawResponse = restClient.post()
+            var postReq = restClient.post()
                     .uri(baseUrl + "/chat/completions")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(payload.toString())
-                    .retrieve()
-                    .body(String.class);
+                    .body(payload.toString());
+            if ("openrouter".equals(lowerProvider)) {
+                postReq.header("HTTP-Referer", "http://localhost:8080")
+                       .header("X-Title", "MSF AI Assistant");
+            }
+            String rawResponse = postReq.retrieve().body(String.class);
 
             JsonNode responseRoot = objectMapper.readTree(rawResponse);
             JsonNode choice = responseRoot.path("choices").path(0);
@@ -302,13 +318,16 @@ public class OpenAiCompatibleAiServiceImpl implements LlmProviderService {
 
                 // Second call to LLM to synthesize natural answer
                 payload.set("messages", messagesNode);
-                String secondResponse = restClient.post()
+                var postReq2 = restClient.post()
                         .uri(baseUrl + "/chat/completions")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(payload.toString())
-                        .retrieve()
-                        .body(String.class);
+                        .body(payload.toString());
+                if ("openrouter".equals(lowerProvider)) {
+                    postReq2.header("HTTP-Referer", "http://localhost:8080")
+                             .header("X-Title", "MSF AI Assistant");
+                }
+                String secondResponse = postReq2.retrieve().body(String.class);
 
                 JsonNode secondRoot = objectMapper.readTree(secondResponse);
                 String finalReply = secondRoot.path("choices").path(0).path("message").path("content").asText("");

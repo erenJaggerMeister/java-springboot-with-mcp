@@ -311,7 +311,7 @@ export default function AiConfigApp({ token: propToken, user: propUser }) {
           <div className="pane-header">
             <h3><Key size={20} className="inline-icon text-indigo-600" /> Kredensial & Pilihan Model LLM</h3>
             <p className="text-muted">
-              Masukkan API Key Anda langsung di bawah. Sistem akan secara otomatis mendeteksi provider (Google Gemini, OpenAI, Claude, DeepSeek, Mistral, Nvidia NIM) beserta daftar model yang tersedia.
+              Masukkan API Key Anda langsung di bawah. Sistem akan secara otomatis mendeteksi provider (OpenRouter, Google Gemini, OpenAI, Claude, DeepSeek, Mistral, Nvidia NIM) beserta daftar model yang tersedia.
             </p>
           </div>
 
@@ -333,10 +333,30 @@ export default function AiConfigApp({ token: propToken, user: propUser }) {
                   type={showApiKey ? "text" : "password"}
                   value={apiKey} 
                   onChange={(e) => {
-                    setApiKey(e.target.value);
+                    const val = e.target.value;
+                    setApiKey(val);
                     setLlmStatus(null);
+                    const trimmed = val.trim();
+                    if (trimmed.startsWith('sk-or-')) {
+                      setDetectedProvider('openrouter');
+                      setDetectedProviderName('OpenRouter');
+                    } else if (trimmed.startsWith('AIza')) {
+                      setDetectedProvider('gemini');
+                      setDetectedProviderName('Google Gemini');
+                    } else if (trimmed.startsWith('sk-ant-')) {
+                      setDetectedProvider('claude');
+                      setDetectedProviderName('Anthropic Claude');
+                    } else if (trimmed.startsWith('nvapi-')) {
+                      setDetectedProvider('nvidia');
+                      setDetectedProviderName('NVIDIA NIM');
+                    }
                   }}
-                  placeholder="Masukkan API Key (Gemini, OpenAI, Claude, DeepSeek, Mistral, dll)..."
+                  onBlur={() => {
+                    if (apiKey.trim()) {
+                      handleDetectAndFetchModels();
+                    }
+                  }}
+                  placeholder="Masukkan API Key (OpenRouter, Gemini, OpenAI, Claude, DeepSeek, dll)..."
                   className="form-control font-mono"
                   autoComplete="off"
                   spellCheck="false"
