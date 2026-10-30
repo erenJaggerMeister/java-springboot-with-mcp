@@ -24,7 +24,7 @@ export default function ChatApp({ token: propToken, user: propUser }) {
     {
       id: 'welcome-1',
       role: 'model',
-      content: `Halo **${currentUser.name || 'Pengguna'}**! 👋 Saya asisten AI cerdas yang terhubung dengan **Gemini LLM** dan sistem **MCP (Model Context Protocol)**.\n\nRiwayat percakapan ini bersifat *sesi sementara* (tidak disimpan di database). Anda dapat menanyakan data siswa atau informasi lainnya secara langsung.`,
+      content: `Halo **${currentUser.name || 'Pengguna'}**! 👋 Saya asisten AI cerdas yang terhubung dengan **LLM Multi-Provider** dan sistem **MCP (Model Context Protocol)**.\n\nRiwayat percakapan ini bersifat *sesi sementara* (tidak disimpan di database). Anda dapat menanyakan data siswa atau informasi lainnya secara langsung.`,
       toolsUsed: [],
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -143,7 +143,7 @@ export default function ChatApp({ token: propToken, user: propUser }) {
               <h1 className="module-title">AI Assistant & MCP Chat</h1>
               <span className="session-badge">Sesi Ephemeral (In-Memory)</span>
             </div>
-            <p className="module-subtitle">Didukung oleh Google Gemini LLM & Akses Live Tool via MCP Protocol</p>
+            <p className="module-subtitle">Didukung oleh Multi-Provider LLM & Akses Live Tool via MCP Protocol</p>
           </div>
         </div>
 
@@ -203,7 +203,7 @@ export default function ChatApp({ token: propToken, user: propUser }) {
 
               <div className="message-content-col">
                 <div className="message-meta">
-                  <span className="sender-name">{isUser ? (currentUser.name || 'Anda') : 'Gemini AI'}</span>
+                  <span className="sender-name">{isUser ? (currentUser.name || 'Anda') : (msg.model ? `AI (${msg.model})` : 'AI Assistant')}</span>
                   <span className="message-time">{msg.timestamp}</span>
                   {msg.model && <span className="model-tag">{msg.model}</span>}
                 </div>
@@ -245,7 +245,7 @@ export default function ChatApp({ token: propToken, user: propUser }) {
                   <span></span>
                   <span></span>
                 </div>
-                <span className="typing-text">Gemini sedang berpikir dan menghubungi MCP...</span>
+                <span className="typing-text">AI sedang berpikir dan menghubungi MCP...</span>
               </div>
             </div>
           </div>

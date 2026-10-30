@@ -9,7 +9,7 @@ export default function Header({ user, onLogout }) {
   return (
     <header className="main-header">
       <div className="header-left">
-        <h1 className="header-title">Penerapan MCP dengan penggunaan java - springboot</h1>
+        <h1 className="header-title" style={{ color: '#ffffff' }}>Penerapan MCP dengan penggunaan java - springboot</h1>
       </div>
 
       <div className="header-right">

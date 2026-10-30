@@ -2,10 +2,8 @@ package com.example.msf_ai.controller;
 
 import com.example.library_helper.dto.ApiResponse;
 import com.example.msf_ai.client.MsmAiClient;
-import com.example.msf_ai.dto.AiConfigDto;
-import com.example.msf_ai.dto.GeminiTestResponseDto;
-import com.example.msf_ai.dto.McpConfigCreateDto;
-import com.example.msf_ai.dto.McpConfigDto;
+import com.example.msf_ai.dto.*;
+import com.example.msf_ai.service.impl.LlmOrchestrationService;
 import com.example.msf_ai.service.interfaces.GeminiAiService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -26,13 +24,86 @@ public class AiConfigOrchestrationController {
     private static final Logger log = LoggerFactory.getLogger(AiConfigOrchestrationController.class);
     private final MsmAiClient msmAiClient;
     private final GeminiAiService geminiAiService;
+    private final LlmOrchestrationService llmOrchestrationService;
 
-    public AiConfigOrchestrationController(MsmAiClient msmAiClient, GeminiAiService geminiAiService) {
+    public AiConfigOrchestrationController(MsmAiClient msmAiClient,
+                                          GeminiAiService geminiAiService,
+                                          LlmOrchestrationService llmOrchestrationService) {
         this.msmAiClient = msmAiClient;
         this.geminiAiService = geminiAiService;
+        this.llmOrchestrationService = llmOrchestrationService;
     }
 
-    // --- GEMINI CONFIGURATION ENDPOINTS ---
+    // --- MULTI-PROVIDER LLM CONFIGURATION ENDPOINTS ---
+
+    @PostMapping("/detect")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> detectProviderAndModels(
+            @RequestBody(required = false) Map<String, String> payload,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        String apiKey = payload != null ? payload.get("apiKey") : null;
+        log.info("REST: POST /api/msf_ai/config/detect");
+        Map<String, Object> result = llmOrchestrationService.detectProviderAndModels(apiKey, bearerToken);
+        return ResponseEntity.ok(ApiResponse.success(result, (String) result.get("message")));
+    }
+
+    @GetMapping("/detect")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> detectProviderAndModelsGet(
+            @RequestParam(name = "apiKey", required = false) String apiKey,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        log.info("REST: GET /api/msf_ai/config/detect");
+        Map<String, Object> result = llmOrchestrationService.detectProviderAndModels(apiKey, bearerToken);
+        return ResponseEntity.ok(ApiResponse.success(result, (String) result.get("message")));
+    }
+
+    @GetMapping("/providers")
+    public ResponseEntity<ApiResponse<List<LlmProviderDto>>> getSupportedProviders() {
+        log.info("REST: GET /api/msf_ai/config/providers");
+        List<LlmProviderDto> providers = llmOrchestrationService.getSupportedProviders();
+        return ResponseEntity.ok(ApiResponse.success(providers, "Daftar provider LLM yang didukung"));
+    }
+
+    @GetMapping("/models")
+    public ResponseEntity<ApiResponse<List<String>>> getAvailableModels(
+            @RequestParam(name = "provider", defaultValue = "gemini") String provider,
+            @RequestParam(name = "apiKey", required = false) String apiKey,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        log.info("REST: GET /api/msf_ai/config/models provider={}", provider);
+        List<String> models = llmOrchestrationService.fetchAvailableModels(provider, apiKey, bearerToken);
+        return ResponseEntity.ok(ApiResponse.success(models, "Daftar model berhasil diambil"));
+    }
+
+    @PostMapping("/test")
+    public ResponseEntity<ApiResponse<LlmTestResponseDto>> testLlmConnection(
+            @RequestBody LlmTestRequestDto request,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        log.info("REST: POST /api/msf_ai/config/test provider={}, model={}", request.getProvider(), request.getModel());
+        LlmTestResponseDto result = llmOrchestrationService.testConnection(
+                request.getProvider(),
+                request.getApiKey(),
+                request.getModel(),
+                bearerToken
+        );
+        return ResponseEntity.ok(ApiResponse.success(result, result.getMessage()));
+    }
+
+    @PostMapping("/active")
+    public ResponseEntity<ApiResponse<String>> saveActiveLlmConfig(
+            @RequestBody LlmConfigActiveDto dto,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        log.info("REST: POST /api/msf_ai/config/active provider={}, model={}", dto.getProvider(), dto.getModel());
+        llmOrchestrationService.saveActiveLlmConfig(dto, bearerToken);
+        return ResponseEntity.ok(ApiResponse.success("Konfigurasi LLM aktif berhasil disimpan", "Sukses"));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getActiveLlmConfig(
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String bearerToken) {
+        log.info("REST: GET /api/msf_ai/config/active");
+        Map<String, String> config = llmOrchestrationService.getActiveLlmConfig(bearerToken);
+        return ResponseEntity.ok(ApiResponse.success(config, "Konfigurasi LLM aktif berhasil diambil"));
+    }
+
+    // --- GEMINI CONFIGURATION ENDPOINTS (PRESERVED FOR BACKWARD COMPATIBILITY) ---
 
     @GetMapping("/gemini")
     public ResponseEntity<ApiResponse<Map<String, String>>> getGeminiConfig(

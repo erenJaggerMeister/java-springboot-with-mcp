@@ -11,7 +11,97 @@ function getHeaders(token) {
   return headers;
 }
 
-// --- GEMINI CONFIGURATION ---
+// --- MULTI-PROVIDER LLM CONFIGURATION ---
+
+export async function detectLlmProviderAndModels(apiKey, token) {
+  const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/detect`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ apiKey: apiKey || '' })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal mendeteksi provider LLM');
+  }
+  const data = await res.json();
+  return data.data || {};
+}
+
+export async function getSupportedProviders(token) {
+  try {
+    const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/providers`, {
+      headers: getHeaders(token)
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch (err) {
+    console.warn('Gagal memuat supported providers:', err);
+    return [];
+  }
+}
+
+export async function getActiveLlmConfig(token) {
+  try {
+    const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/active`, {
+      headers: getHeaders(token)
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.data || {};
+  } catch (err) {
+    console.warn('Gagal memuat active LLM config:', err);
+    return {};
+  }
+}
+
+export async function saveActiveLlmConfig({ provider, apiKey, model }, token) {
+  const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/active`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ provider, apiKey, model })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menyimpan konfigurasi LLM');
+  }
+  const data = await res.json();
+  return data.data;
+}
+
+export async function fetchLlmModels(provider, apiKey, token) {
+  try {
+    const params = new URLSearchParams();
+    if (provider) params.append('provider', provider);
+    if (apiKey) params.append('apiKey', apiKey);
+
+    const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/models?${params.toString()}`, {
+      headers: getHeaders(token)
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch (err) {
+    console.warn('Gagal mengambil models dari provider:', err);
+    return [];
+  }
+}
+
+export async function testLlmConnection({ provider, apiKey, model }, token) {
+  const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/test`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ provider, apiKey, model })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menguji koneksi LLM');
+  }
+  const data = await res.json();
+  return data;
+}
+
+// --- LEGACY GEMINI CONFIGURATION (BACKWARD COMPATIBLE) ---
 
 export async function getGeminiConfig(token) {
   const res = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/gemini`, {
@@ -23,7 +113,6 @@ export async function getGeminiConfig(token) {
 }
 
 export async function saveGeminiConfig(apiKey, model, token) {
-  // 1. Simpan Gemini API Key
   const resKey = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/gemini`, {
     method: 'POST',
     headers: getHeaders(token),
@@ -34,7 +123,6 @@ export async function saveGeminiConfig(apiKey, model, token) {
   });
   if (!resKey.ok) throw new Error('Gagal menyimpan API Key Gemini');
 
-  // 2. Simpan Gemini Model jika disertakan
   if (model) {
     const resModel = await fetch(`${MSF_AI_BASE_URL}/api/msf_ai/config/gemini`, {
       method: 'POST',
