@@ -2,11 +2,15 @@ package com.example.msf_student.mcp.tools;
 
 import com.example.library_helper.dto.PagingResult;
 import com.example.msf_student.dto.StudentDto;
+import com.example.msf_student.dto.StudentRequestDto;
 import com.example.msf_student.mcp.helper.McpBearerTokenHelper;
 import com.example.msf_student.service.interfaces.StudentOrchestrationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
@@ -122,5 +126,43 @@ public class StudentPagingTool {
             return "Bearer " + trimmed;
         }
         return trimmed;
+    }
+
+    @Tool(name = "create_new_student", description = "tool to create new student")
+    public String createNewDataStudent(
+        @ToolParam(description = "Name of new student") String name,
+        @ToolParam(description = "Age of student") Integer age,
+        @ToolParam(description = "Class that will be assign to student") String classOfStudent,
+        @ToolParam(description = "Type of class that student will joined") String typeOfClass
+    ){
+        StudentRequestDto student = new StudentRequestDto();
+        student.setNama(name);
+        student.setUmur(age);
+        student.setKelas(classOfStudent);
+        student.setJenisKelas(typeOfClass);
+        try{
+            String token = mcpBearerTokenHelper.getBearerToken();
+
+            StudentDto result = studentOrchestrationService.create(student, token);
+
+            String jsonResult = objectMapper.writeValueAsString(result);
+
+            return jsonResult;
+        } catch(JsonProcessingException e){
+            return "{\"error\": \"Failed to serialize student paging result: " + e.getMessage() + "\"}";
+        } catch(Exception e){
+            return "{\"error\": \"Failed to get student data: " + e.getMessage() + "\"}";
+        }
+    }
+
+    @Tool(name = "udpate_data_student", description = "tool for update data student")
+    public StudentDto updateDataStudent(@ToolParam(description = "id data student") UUID id, @ToolParam(description = "payload of data student") StudentRequestDto payload) throws Exception {
+        try{
+            String token = this.mcpBearerTokenHelper.getBearerToken();
+            StudentDto resultUpdateStudent = this.studentOrchestrationService.update(id, payload, token);
+            return resultUpdateStudent;
+        } catch (Exception e){
+            throw new Exception(e.getMessage());
+        }
     }
 }
