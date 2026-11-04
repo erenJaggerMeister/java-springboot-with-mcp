@@ -2,6 +2,7 @@ package com.example.msf_student.mcp.tools;
 
 import com.example.library_helper.dto.PagingResult;
 import com.example.msf_student.dto.StudentDto;
+import com.example.msf_student.dto.StudentRequestDto;
 import com.example.msf_student.mcp.helper.McpBearerTokenHelper;
 import com.example.msf_student.service.interfaces.StudentOrchestrationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -122,5 +123,32 @@ public class StudentPagingTool {
             return "Bearer " + trimmed;
         }
         return trimmed;
+    }
+
+    @Tool(name = "create_new_student", description = "tool to create new student")
+    public String createNewDataStudent(
+        @ToolParam(description = "Name of new student") String name,
+        @ToolParam(description = "Age of student") Integer age,
+        @ToolParam(description = "Class that will be assign to student") String classOfStudent,
+        @ToolParam(description = "Type of class that student will joined") String typeOfClass
+    ){
+        StudentRequestDto student = new StudentRequestDto();
+        student.setNama(name);
+        student.setUmur(age);
+        student.setKelas(classOfStudent);
+        student.setJenisKelas(typeOfClass);
+        try{
+            String token = mcpBearerTokenHelper.getBearerToken();
+
+            StudentDto result = studentOrchestrationService.create(student, token);
+
+            String jsonResult = objectMapper.writeValueAsString(result);
+
+            return jsonResult;
+        } catch(JsonProcessingException e){
+            return "{\"error\": \"Failed to serialize student paging result: " + e.getMessage() + "\"}";
+        } catch(Exception e){
+            return "{\"error\": \"Failed to get student data: " + e.getMessage() + "\"}";
+        }
     }
 }
