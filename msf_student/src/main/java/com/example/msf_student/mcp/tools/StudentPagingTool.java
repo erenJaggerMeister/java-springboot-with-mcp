@@ -8,6 +8,9 @@ import com.example.msf_student.service.interfaces.StudentOrchestrationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
@@ -149,6 +152,17 @@ public class StudentPagingTool {
             return "{\"error\": \"Failed to serialize student paging result: " + e.getMessage() + "\"}";
         } catch(Exception e){
             return "{\"error\": \"Failed to get student data: " + e.getMessage() + "\"}";
+        }
+    }
+
+    @Tool(name = "udpate_data_student", description = "tool for update data student")
+    public StudentDto updateDataStudent(@ToolParam(description = "id data student") UUID id, @ToolParam(description = "payload of data student") StudentRequestDto payload) throws Exception {
+        try{
+            String token = this.mcpBearerTokenHelper.getBearerToken();
+            StudentDto resultUpdateStudent = this.studentOrchestrationService.update(id, payload, token);
+            return resultUpdateStudent;
+        } catch (Exception e){
+            throw new Exception(e.getMessage());
         }
     }
 }
